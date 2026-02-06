@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🌤️ Legacy Weather App</h1>
+        <div class="search-box">
+            <input type="text" id="cityInput" placeholder="Введите город...">
+            <button onclick="getWeather()">Получить погоду</button>
+        </div>
+        <div id="result"></div>
+        <div id="history"></div>
+    </div>
+    
+    <script>
+        async function getWeather() {
+            const city = document.getElementById('cityInput').value;
+            if (!city) return;
+            
+            try {
+                const response = await fetch(`/api/weather/${city}`);
+                const data = await response.json();
+                
+                document.getElementById('result').innerHTML = `
+                    <div class="weather-card">
+                        <h2>${data.city}</h2>
+                        <p>🌡️ Температура: ${data.data.temperature}°C</p>
+                        <p>💧 Влажность: ${data.data.humidity}%</p>
+                        <p>☁️ ${data.data.description}</p>
+                        <small>Источник: ${data.source}</small>
+                    </div>
+                `;
+                
+                getHistory(city);
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<p class="error">Ошибка: ${error}</p>`;
+            }
+        }
+        
+        async function getHistory(city) {
+            try {
+                const response = await fetch(`/api/history/${city}`);
+                const data = await response.json();
+                
+                if (data.history && data.history.length > 0) {
+                    let historyHtml = '<h3>История запросов:</h3><ul>';
+                    data.history.forEach(item => {
+                        historyHtml += `<li>${item.temperature}°C, ${item.humidity}%, ${item.description}</li>`;
+                    });
+                    historyHtml += '</ul>';
+                    document.getElementById('history').innerHTML = historyHtml;
+                }
+            } catch (error) {
+                console.error('History error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

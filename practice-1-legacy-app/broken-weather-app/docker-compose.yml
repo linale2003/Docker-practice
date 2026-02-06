@@ -1,0 +1,71 @@
+version: '3.9'
+
+services:
+  app:
+    build: .
+    container_name: app
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3 
+      start_period: 40s
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+    networks:
+      - backend
+      - frontend
+    restart: always
+  db:
+    image: postgres:15-alpine
+    container_name: postgresql
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -U {DB_USER}']
+      interval: 30s
+      timeout: 10s
+      retries: 3 
+      start_period: 40s
+    ports:
+      - "5432:5432"
+    
+    networks:
+      - backend
+    
+    restart: unless-stopped
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  redis:
+    image: redis:7-alpine
+    environment:
+      redis: ${REDIS_HOST}
+    container_name: redis_app
+    depends_on: 
+      - db 
+    ports:
+      - 6379:6379
+
+networks:
+  frontend:
+    driver: bridge 
+
+  backend:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+
+
+volumes: 
+  postgres_data:
