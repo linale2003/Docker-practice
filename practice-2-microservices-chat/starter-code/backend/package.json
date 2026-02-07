@@ -1,0 +1,14 @@
+{
+  "name": "chat-backend",
+  "version": "1.0.0",
+  "description": "Microservices chat backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1",
+    "redis": "^4.6.5"
+  }
+}

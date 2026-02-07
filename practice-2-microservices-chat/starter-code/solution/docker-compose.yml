@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  frontend:
+    # ЗАДАНИЕ: Ис
+    # Доступные версии: v1, v2, v3
+    # Пример: prostodevops/chat-frontend:v1
+    image: prostodevops/chat-frontend:v1
+
+    # ЗАДАНИЕ: Добавьте в правильную сеть
+    networks:
+      - chat-network
+
+  backend:
+    # ЗАДАНИЕ: Используйте свой Dockerfile из папки backend/
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    
+    environment:
+      # ЗАДАНИЕ: Установите версию backend (v1, v2 или v3)
+      # Найдите версию, совместимую с выбранным frontend!
+      - BACKEND_VERSION=v1 
+      
+      # ЗАДАНИЕ: Укажите имя Redis сервиса
+      - REDIS_HOST=redis
+      - PORT=3000
+    
+    # ЗАДАНИЕ: От каких сервисов зависит backend?
+    depends_on:
+      - redis
+    
+    # ЗАДАНИЕ: Добавьте в сеть
+    networks:
+      - chat-network
+
+  redis:
+    image: redis:7-alpine
+    
+    # ЗАДАНИЕ: Добавьте volume для сохранения данных
+    volumes:
+      - redis_data:/data
+    
+    # ЗАДАНИЕ: Добавьте в сеть
+    networks:
+      - chat-network
+
+  nginx:
+    image: nginx:alpine
+    
+    # Только этот порт должен быть доступен снаружи!
+    ports:
+      - "80:80"
+    
+    # ЗАДАНИЕ: Примонтируйте свой конфиг nginx
+    volumes:
+      - ../configs/nginx.conf.example:/etc/nginx/nginx.conf
+    
+    # ЗАДАНИЕ: От каких сервисов зависит nginx?
+    depends_on:
+      - frontend
+      - backend
+    
+    # ЗАДАНИЕ: Добавьте в сеть
+    networks:
+      - chat-network
+
+# ЗАДАНИЕ: Определите сеть
+networks:
+  chat-network:
+    driver: bridge
+
+# ЗАДАНИЕ: Определите volume для Redis
+volumes:
+  redis_data:
